@@ -25,6 +25,10 @@ from tradingagents.default_config import DEFAULT_CONFIG
 from cli.models import AnalystType
 from cli.utils import *
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 console = Console()
 
 app = typer.Typer(
