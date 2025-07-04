@@ -3,6 +3,7 @@ from datetime import date, timedelta, datetime
 from typing_extensions import TypedDict, Optional
 from langchain_openai import ChatOpenAI
 from tradingagents.agents import *
+from tradingagents.agents.execution.ib_agent import create_ib_agent
 from langgraph.prebuilt import ToolNode
 from langgraph.graph import END, StateGraph, START, MessagesState
 
@@ -74,3 +75,5 @@ class AgentState(MessagesState):
         RiskDebateState, "Current state of the debate on evaluating risk"
     ]
     final_trade_decision: Annotated[str, "Final decision made by the Risk Analysts"]
+    execute_trades: Annotated[bool, "Whether to execute trades or not"]
+    trade_confirmation: Annotated[str, "Confirmation message from the execution agent"]

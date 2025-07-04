@@ -65,3 +65,9 @@ class ConditionalLogic:
         if state["risk_debate_state"]["latest_speaker"].startswith("Safe"):
             return "Neutral Analyst"
         return "Risky Analyst"
+
+    def should_execute_trade(self, state: AgentState) -> str:
+        """Determine if the trade should be executed."""
+        if state.get("execute_trades"):
+            return "IBExecutionAgent"
+        return END

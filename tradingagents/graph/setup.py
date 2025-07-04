@@ -108,6 +108,8 @@ class GraphSetup:
             self.deep_thinking_llm, self.risk_manager_memory
         )
 
+        ib_agent_node = create_ib_agent("IBExecutionAgent")
+
         # Create workflow
         workflow = StateGraph(AgentState)
 
@@ -128,6 +130,7 @@ class GraphSetup:
         workflow.add_node("Neutral Analyst", neutral_analyst)
         workflow.add_node("Safe Analyst", safe_analyst)
         workflow.add_node("Risk Judge", risk_manager_node)
+        workflow.add_node("IBExecutionAgent", ib_agent_node)
 
         # Define edges
         # Start with the first analyst
@@ -199,7 +202,15 @@ class GraphSetup:
             },
         )
 
-        workflow.add_edge("Risk Judge", END)
+        workflow.add_conditional_edges(
+            "Risk Judge",
+            self.conditional_logic.should_execute_trade,
+            {
+                "IBExecutionAgent": "IBExecutionAgent",
+                END: END,
+            },
+        )
+        workflow.add_edge("IBExecutionAgent", END)
 
         # Compile and return
         return workflow.compile()

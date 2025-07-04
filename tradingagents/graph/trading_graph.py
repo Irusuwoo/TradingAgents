@@ -37,6 +37,7 @@ class TradingAgentsGraph:
         selected_analysts=["market", "social", "news", "fundamentals"],
         debug=False,
         config: Dict[str, Any] = None,
+        execute_trades: bool = False,
     ):
         """Initialize the trading agents graph and components.
 
@@ -47,6 +48,7 @@ class TradingAgentsGraph:
         """
         self.debug = debug
         self.config = config or DEFAULT_CONFIG
+        self.execute_trades = execute_trades
 
         # Update the interface's config
         set_config(self.config)
@@ -163,6 +165,8 @@ class TradingAgentsGraph:
         init_agent_state = self.propagator.create_initial_state(
             company_name, trade_date
         )
+        init_agent_state["execute_trades"] = self.execute_trades
+        init_agent_state["trade_confirmation"] = ""
         args = self.propagator.get_graph_args()
 
         if self.debug:

@@ -73,6 +73,7 @@ class MessageBuffer:
             "investment_plan": None,
             "trader_investment_plan": None,
             "final_trade_decision": None,
+            "trade_confirmation": None,
         }
 
     def add_message(self, message_type, content):
@@ -114,6 +115,7 @@ class MessageBuffer:
                 "investment_plan": "Research Team Decision",
                 "trader_investment_plan": "Trading Team Plan",
                 "final_trade_decision": "Portfolio Management Decision",
+                "trade_confirmation": "Trade Execution Confirmation",
             }
             self.current_report = (
                 f"### {section_titles[latest_section]}\n{latest_content}"
@@ -735,7 +737,7 @@ def extract_content_string(content):
     else:
         return str(content)
 
-def run_analysis():
+def run_analysis(execute_trades: bool = False):
     # First get all user selections
     selections = get_user_selections()
 
@@ -750,7 +752,9 @@ def run_analysis():
 
     # Initialize the graph
     graph = TradingAgentsGraph(
-        [analyst.value for analyst in selections["analysts"]], config=config, debug=True
+        selected_analysts=[analyst.value for analyst in selections["analysts"]],
+        debug=False,
+        execute_trades=execute_trades,
     )
 
     # Create result directory
@@ -1097,12 +1101,73 @@ def run_analysis():
         # Display the complete final report
         display_complete_report(final_state)
 
+        if execute_trades:
+            trade_confirmation = final_state.get("trade_confirmation")
+            if trade_confirmation:
+                message_buffer.add_message("Execution", trade_confirmation)
+                # Also add to the final report display
+                message_buffer.update_report_section(
+                    "trade_confirmation", trade_confirmation
+                )
+
         update_display(layout)
 
 
+def run_analysis_with_loop(execute_trades: bool, loop: bool):
+    """Handles the main analysis loop."""
+    if loop:
+        while True:
+            try:
+                run_analysis(execute_trades)
+                console.print(
+                    Panel(
+                        "Cycle complete. Waiting for the next interval (1 hour). Press Ctrl+C to exit.",
+                        title="[bold green]Loop Mode[/bold green]",
+                        border_style="green",
+                    )
+                )
+                time.sleep(3600)
+            except KeyboardInterrupt:
+                console.print("\nLoop terminated by user.")
+                break
+            except Exception as e:
+                console.print(f"[bold red]An error occurred during analysis: {e}[/bold red]")
+                console.print("Restarting loop in 60 seconds...")
+                time.sleep(60)
+    else:
+        run_analysis(execute_trades)
+
+
 @app.command()
-def analyze():
-    run_analysis()
+def analyze(
+    execute_trades: bool = typer.Option(
+        False,
+        "--execute-trades",
+        "-e",
+        help="Enable actual trade execution via Interactive Brokers.",
+    ),
+    loop: bool = typer.Option(
+        False, "--loop", "-l", help="Run the analysis and trading in a continuous loop."
+    ),
+):
+    """
+    Run the trading analysis pipeline.
+
+    Optionally, execute trades and run in a continuous loop.
+    """
+    if execute_trades:
+        console.print(
+            Panel(
+                "[bold yellow]WARNING: Trade execution is enabled. This will execute real trades in your Interactive Brokers account.[/bold yellow]",
+                title="[bold red]Confirmation Required[/bold red]",
+                border_style="red",
+            )
+        )
+        if not typer.confirm("Are you sure you want to continue?"):
+            console.print("Trade execution aborted by user.")
+            raise typer.Abort()
+
+    run_analysis_with_loop(execute_trades, loop)
 
 
 if __name__ == "__main__":

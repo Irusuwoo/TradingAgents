@@ -18,6 +18,7 @@ from .managers.research_manager import create_research_manager
 from .managers.risk_manager import create_risk_manager
 
 from .trader.trader import create_trader
+from .execution.ib_agent import create_ib_agent
 
 __all__ = [
     "FinancialSituationMemory",
@@ -38,4 +39,5 @@ __all__ = [
     "create_safe_debator",
     "create_social_media_analyst",
     "create_trader",
+    "create_ib_agent",
 ]
