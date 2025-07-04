@@ -146,6 +146,49 @@ An interface will appear showing results as they load, letting you track the age
   <img src="assets/cli/cli_transaction.png" width="100%" style="display: inline-block; margin: 0 2%;">
 </p>
 
+### Interactive Brokers Trade Execution
+
+TradingAgents now supports live trade execution via Interactive Brokers. This feature allows you to automatically execute the trades recommended by the agent system.
+
+#### Setup
+
+Before using trade execution, you must:
+
+1. Install the Interactive Brokers TWS (Trader Workstation) or IB Gateway
+2. Enable API connections in the TWS/Gateway settings
+3. Configure your IB credentials in your environment or `.env` file:
+
+```bash
+IB_HOST=127.0.0.1  # Default for local TWS/Gateway
+IB_PORT=7497        # 7497 for TWS, 4002 for IB Gateway
+IB_CLIENT_ID=1      # Any unique ID
+IB_ACCOUNT=YOUR_IB_ACCOUNT_NUMBER
+```
+
+#### Running With Trade Execution
+
+To enable trade execution, use the `--execute-trades` flag:
+
+```bash
+python -m cli.main analyze --execute-trades
+```
+
+This will prompt for confirmation before executing any real trades.
+
+To run in continuous mode, which will analyze and execute trades at regular intervals (once per hour), add the `--loop` flag:
+
+```bash
+python -m cli.main analyze --execute-trades --loop
+```
+
+⚠️ **IMPORTANT SAFETY WARNINGS**:
+
+- Always ensure your TWS/Gateway is properly configured before enabling trade execution
+- The system currently uses fixed quantities (10 shares) for buy orders - modify the code for your risk tolerance
+- All buy orders are accompanied by 5% stop-loss and 10% take-profit orders
+- Press Ctrl+C to exit loop mode at any time
+- Test thoroughly with paper trading before using real money
+
 ## TradingAgents Package
 
 ### Implementation Details
